@@ -1,5 +1,5 @@
 "use client";
-import { SignIn, SignInButton, UserButton } from '@clerk/nextjs';
+import { SignIn, SignInButton, UserButton,SignOutButton,SignedOut,SignedIn } from '@clerk/nextjs';
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -52,8 +52,14 @@ function Header() {
 
 
       </ul>
-
-      <UserButton />
+      
+      <SignedOut>
+            <SignInButton />
+          </SignedOut>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+   
     </div>
   );
 }
