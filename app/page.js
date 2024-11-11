@@ -1,17 +1,11 @@
-import Header from "./_components/Header";
-import HeroSection from "./_components/HeroSection";
-
-
+import Header from "./dashboard/_components/Header";
+import HeroSection from "./dashboard/_components/HeroSection";
 
 export default function Home() {
-  return(
+  return (
     <div>
       <Header />
-     <HeroSection />
-
-
-
+      <HeroSection />
     </div>
-
-   );
+  );
 }
