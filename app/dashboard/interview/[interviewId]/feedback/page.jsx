@@ -60,7 +60,7 @@ setAverageRating(avgRating);
         ) : (
           <>
             <h2 className="text-primary text-lg my-2">
-              Your overall interview rating: <strong>{averageRating ? `${averageRating}/5` : 'N/A'}</strong>
+              Your overall interview rating: <strong>{averageRating ? `${averageRating}/10` : 'N/A'}</strong>
             </h2>
             <h2 className="text-sm text-gray-500">
               Find below the interview questions with correct answers, your responses, and feedback for improvements in future interviews.
@@ -75,7 +75,7 @@ setAverageRating(avgRating);
                 <CollapsibleContent>
                   <div className="flex flex-col gap-2">
                     <h2 className="text-red-500 p-2 border rounded-lg">
-                      <strong>Rating: </strong>{item.rating}
+                      <strong>Rating: </strong>{item.rating}/10
                     </h2>
                     <h2 className="p-2 border rounded-lg bg-red-50 text-sm text-red-900">
                       <strong>Your Answer: </strong>{item.userAns}
