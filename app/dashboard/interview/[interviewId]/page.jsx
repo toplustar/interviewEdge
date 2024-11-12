@@ -46,7 +46,7 @@ function Interview({ params }) {
               <span>Information</span>
             </h2>
             <h2 className="mt-3 text-yellow-500">
-              {process.env.NEXT_PUBLIC_INFORMATION}
+            Enable Video Web Cam and Microphone to Start your AI Generated Mock Interview, It Has 5 questions which you can answer and at last you will get the report on the basis of your answer . NOTE: We never record your video, Web cam access you can disable at any time if you want
             </h2>
           </div>
         </div>
@@ -56,7 +56,7 @@ function Interview({ params }) {
               onUserMedia={() => setWebCamEnabled(true)}
               onUserMediaError={() => setWebCamEnabled(false)}
               mirrored={true}
-              style={{ height: 300, width: 300 }}
+              style={{ height: 300, width: "auto" }}
             />
           ) : (
             <>

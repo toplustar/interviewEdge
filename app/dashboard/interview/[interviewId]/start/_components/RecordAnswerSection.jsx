@@ -2,7 +2,6 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import Webcam from "react-webcam";
 import useSpeechToText from "react-hook-speech-to-text";
 import { Mic, StopCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -20,6 +19,9 @@ const RecordAnswerSection = ({
   const [userAnswer, setUserAnswer] = useState("");
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
+  const [speechToTextEnabled, setSpeechToTextEnabled] = useState(false);
+
+  // Client-only Speech Recognition Setup
   const {
     error,
     interimResult,
@@ -32,33 +34,31 @@ const RecordAnswerSection = ({
     continuous: true,
     useLegacyResults: false,
   });
-  useEffect(() => {
-    results.map((result) =>
-      setUserAnswer((prevAns) => prevAns + result?.transcript)
-    );
-  }, [results]);
 
+  // Enable speech-to-text only on the client
   useEffect(() => {
-    if (!isRecording && userAnswer.length > 10) {
-      UpdateUserAnswer();
+    if (typeof window !== "undefined") {
+      setSpeechToTextEnabled(true);
     }
-  }, [userAnswer]);
+  }, []);
 
+  // Update user answer in real-time with each interim result
+  useEffect(() => {
+    if (speechToTextEnabled && isRecording) {
+      setUserAnswer(interimResult);  // Show interim text for live display
+    }
+  }, [interimResult, isRecording, speechToTextEnabled]);
+
+  // Function to start/stop recording
   const StartStopRecording = async () => {
     if (isRecording) {
       stopSpeechToText();
-      // if (userAnswer?.length < 10) {
-      //   setLoading(false)
-      //   toast("Error while saving your answer,please record again");
-      //   return;
-      // }
     } else {
       startSpeechToText();
     }
   };
 
   const UpdateUserAnswer = async () => {
-    console.log(userAnswer, "########");
     setLoading(true);
     const feedbackPrompt =
       "Question:" +
@@ -66,26 +66,14 @@ const RecordAnswerSection = ({
       ", User Answer:" +
       userAnswer +
       ",Depends on question and user answer for given interview question " +
-      " please give use rating for answer and feedback as area of improvement if any" +
+      " please give use rating out of 10  for answer and feedback as area of improvement if any" +
       " in just 3 to 5 lines to improve it in JSON format with rating field and feedback field";
-    console.log(
-      "🚀 ~ file: RecordAnswerSection.jsx:38 ~ SaveUserAnswer ~ feedbackPrompt:",
-      feedbackPrompt
-    );
     const result = await chatSession.sendMessage(feedbackPrompt);
-    console.log(
-      "🚀 ~ file: RecordAnswerSection.jsx:46 ~ SaveUserAnswer ~ result:",
-      result
-    );
     const mockJsonResp = result.response
       .text()
       .replace("```json", "")
       .replace("```", "");
 
-    console.log(
-      "🚀 ~ file: RecordAnswerSection.jsx:47 ~ SaveUserAnswer ~ mockJsonResp:",
-      mockJsonResp
-    );
     const JsonfeedbackResp = JSON.parse(mockJsonResp);
     const resp = await db.insert(UserAnswer).values({
       mockIdRef: interviewData?.mockId,
@@ -108,8 +96,9 @@ const RecordAnswerSection = ({
   };
 
   if (error) return <p>Web Speech API is not available in this browser 🤷‍</p>;
+
   return (
-    <div className="flex justify-cente items-center flex-col">
+    <div className="flex justify-center items-center flex-col">
       <div className="flex flex-col my-20 justify-center items-center bg-black rounded-lg p-5">
         <Image
           src={"/webcam.png"}
@@ -119,10 +108,6 @@ const RecordAnswerSection = ({
           alt="webcam"
           priority
         />
-        {/* <Webcam
-          style={{ height: 300, width: "100%", zIndex: 10 }}
-          mirrored={true}
-        /> */}
       </div>
       <Button
         disabled={loading}
@@ -140,9 +125,24 @@ const RecordAnswerSection = ({
           </h2>
         )}
       </Button>
-      {/* <Button onClick={() => console.log("------", userAnswer)}>
-        Show User Answer
-      </Button> */}
+
+      {/* Text area for live transcription with editing option */}
+      <textarea
+        className="w-full h-32 p-4 mt-4 border rounded-md text-gray-800"
+        placeholder="Your answer will appear here..."
+        value={userAnswer}
+        onChange={(e) => setUserAnswer(e.target.value)}
+      />
+
+      {/* Button to save answer manually */}
+      <Button
+  className="mt-4"
+  onClick={UpdateUserAnswer}
+  disabled={loading || (userAnswer?.trim() === "")} // Safe access
+>
+  Save Answer
+</Button>
+
     </div>
   );
 };

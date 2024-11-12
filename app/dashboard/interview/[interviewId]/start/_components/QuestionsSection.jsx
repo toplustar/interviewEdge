@@ -1,7 +1,6 @@
 "use client"
 import { Lightbulb, Volume2 } from 'lucide-react'
 import React from 'react'
-
 const QuestionsSection = ({mockInterviewQuestion,activeQuestionIndex}) => {
   console.log("🚀 ~ file: QuestionsSection.jsx:4 ~ QuestionsSection ~ mockInterviewQuestion:", mockInterviewQuestion);
   const textToSpeach=(text)=>{
@@ -28,7 +27,7 @@ if('speechSynthesis' in window){
                     <Lightbulb/>
                     <strong>Note:</strong>
                 </h2>
-                <h2 className='text-sm text-primary my-2'>{process.env.NEXT_PUBLIC_QUESTION_NOTE}</h2>
+                <h2 className='text-sm text-primary my-2'>Enable Video Web Cam and Microphone to Start your AI Generated Mock Interview, It Has 5 questions which you can answer and at last you will get the report on the basis of your answer . NOTE: We never record your video, Web cam access you can disable at any time if you want</h2>
             </div>
     </div>
   )
