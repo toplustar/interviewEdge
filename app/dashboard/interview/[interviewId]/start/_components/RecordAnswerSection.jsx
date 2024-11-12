@@ -11,17 +11,12 @@ import { UserAnswer } from "@/utils/schema";
 import { useUser } from "@clerk/nextjs";
 import moment from "moment";
 
-const RecordAnswerSection = ({
-  mockInterviewQuestion,
-  activeQuestionIndex,
-  interviewData,
-}) => {
+const RecordAnswerSection = ({ mockInterviewQuestion, activeQuestionIndex, interviewData }) => {
   const [userAnswer, setUserAnswer] = useState("");
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
   const [speechToTextEnabled, setSpeechToTextEnabled] = useState(false);
 
-  // Client-only Speech Recognition Setup
   const {
     error,
     interimResult,
@@ -35,22 +30,19 @@ const RecordAnswerSection = ({
     useLegacyResults: false,
   });
 
-  // Enable speech-to-text only on the client
   useEffect(() => {
     if (typeof window !== "undefined") {
       setSpeechToTextEnabled(true);
     }
   }, []);
 
-  // Update user answer in real-time with each interim result
   useEffect(() => {
     if (speechToTextEnabled && isRecording) {
-      setUserAnswer(interimResult);  // Show interim text for live display
+      setUserAnswer(interimResult);
     }
   }, [interimResult, isRecording, speechToTextEnabled]);
 
-  // Function to start/stop recording
-  const StartStopRecording = async () => {
+  const StartStopRecording = () => {
     if (isRecording) {
       stopSpeechToText();
     } else {
@@ -59,40 +51,46 @@ const RecordAnswerSection = ({
   };
 
   const UpdateUserAnswer = async () => {
+    if (!userAnswer.trim()) {
+      toast.error("Please provide an answer before saving.");
+      return;
+    }
+
     setLoading(true);
+
     const feedbackPrompt =
-      "Question:" +
-      mockInterviewQuestion[activeQuestionIndex]?.question +
-      ", User Answer:" +
-      userAnswer +
-      ",Depends on question and user answer for given interview question " +
-      " please give use rating out of 10  for answer and feedback as area of improvement if any" +
-      " in just 3 to 5 lines to improve it in JSON format with rating field and feedback field";
-    const result = await chatSession.sendMessage(feedbackPrompt);
-    const mockJsonResp = result.response
-      .text()
-      .replace("```json", "")
-      .replace("```", "");
+      `Question: ${mockInterviewQuestion[activeQuestionIndex]?.question}, ` +
+      `User Answer: ${userAnswer}. Please give a rating out of 10 and feedback on improvement in JSON format ` +
+      `{ "rating": <number>, "feedback": <text> }`;
 
-    const JsonfeedbackResp = JSON.parse(mockJsonResp);
-    const resp = await db.insert(UserAnswer).values({
-      mockIdRef: interviewData?.mockId,
-      question: mockInterviewQuestion[activeQuestionIndex]?.question,
-      correctAns: mockInterviewQuestion[activeQuestionIndex]?.answer,
-      userAns: userAnswer,
-      feedback: JsonfeedbackResp?.feedback,
-      rating: JsonfeedbackResp?.rating,
-      userEmail: user?.primaryEmailAddress?.emailAddress,
-      createdAt: moment().format("DD-MM-YYYY"),
-    });
+    try {
+      const result = await chatSession.sendMessage(feedbackPrompt);
+      const mockJsonResp = result.response
+        .text()
+        .replace("```json", "")
+        .replace("```", "");
 
-    if (resp) {
-      toast("User Answer recorded successfully");
+      const JsonfeedbackResp = JSON.parse(mockJsonResp);
+
+      await db.insert(UserAnswer).values({
+        mockIdRef: interviewData?.mockId,
+        question: mockInterviewQuestion[activeQuestionIndex]?.question,
+        correctAns: mockInterviewQuestion[activeQuestionIndex]?.answer,
+        userAns: userAnswer,
+        feedback: JsonfeedbackResp?.feedback,
+        rating: JsonfeedbackResp?.rating,
+        userEmail: user?.primaryEmailAddress?.emailAddress,
+        createdAt: moment().format("DD-MM-YYYY"),
+      });
+
+      toast.success("User Answer recorded successfully");
       setUserAnswer("");
       setResults([]);
+    } catch (error) {
+      toast.error("An error occurred while saving the answer.");
+    } finally {
+      setLoading(false);
     }
-    setResults([]);
-    setLoading(false);
   };
 
   if (error) return <p>Web Speech API is not available in this browser 🤷‍</p>;
@@ -101,7 +99,7 @@ const RecordAnswerSection = ({
     <div className="flex justify-center items-center flex-col">
       <div className="flex flex-col my-20 justify-center items-center bg-black rounded-lg p-5">
         <Image
-          src={"/webcam.png"}
+          src="/webcam.png"
           width={200}
           height={200}
           className="absolute"
@@ -126,7 +124,6 @@ const RecordAnswerSection = ({
         )}
       </Button>
 
-      {/* Text area for live transcription with editing option */}
       <textarea
         className="w-full h-32 p-4 mt-4 border rounded-md text-gray-800"
         placeholder="Your answer will appear here..."
@@ -134,7 +131,7 @@ const RecordAnswerSection = ({
         onChange={(e) => setUserAnswer(e.target.value)}
       />
 
-      {/* Button to save answer manually */}
+    
       <Button
   className="mt-4"
   onClick={UpdateUserAnswer}
@@ -142,7 +139,6 @@ const RecordAnswerSection = ({
 >
   Save Answer
 </Button>
-
     </div>
   );
 };
