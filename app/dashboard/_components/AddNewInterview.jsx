@@ -33,11 +33,17 @@ function AddNewInterview() {
     e.preventDefault();
     setLoading(true);
 
-    const inputPrompt = `Job position: ${jobPosition}, Job Description: ${jobDescription}, Years of Experience: ${jobExperience}, Depends on Job Position, Job Description and Years of Experience give us 5 Interview question along with Answer in JSON format, Give us question and Answer field on JSON,Each question and answer should be in the format:
-  {
-    "question": "Your question here",
-    "answer": "Your answer here"
-  }`;
+    const inputPrompt = `Job position: ${jobPosition}, Job Description: ${jobDescription}, Years of Experience: ${jobExperience}.
+    Please provide exactly 5 interview questions and answers related to this job in strict JSON format. 
+    Each question and answer should be in this format:
+    [
+      {
+        "question": "Your question here",
+        "answer": "Your answer here"
+      }
+    ]
+    Only provide the JSON array, without additional text or commentary.`;
+    
 
     try {
       const result = await chatSession.sendMessage(inputPrompt);
@@ -84,6 +90,7 @@ function AddNewInterview() {
         className="p-10 border rounded-lg bg-secondary hover:scale-105 hover:shadow-md cursor-pointer transition-all"
         onClick={() => setOpenDialog(true)}
       >
+       
         <h1 className="font-bold text-lg text-center">+ Add New</h1>
       </div>
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
