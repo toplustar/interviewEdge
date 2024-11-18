@@ -1,13 +1,12 @@
 "use client";
-import { SignIn, SignInButton, UserButton,SignOutButton,SignedOut,SignedIn } from "@clerk/nextjs";
+import { SignIn, SignInButton, UserButton, SignOutButton, SignedOut, SignedIn } from "@clerk/nextjs";
 import React, { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react"; // For icons
+import { Menu, X, Bot } from "lucide-react";
 
 function Header() {
-  const path = usePathname(); // Gets the current path
+  const path = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
@@ -16,9 +15,13 @@ function Header() {
 
   return (
     <div className="flex justify-between items-center p-5 bg-secondary shadow-md z-50">
-      <Image src={"/logo.svg"} width={160} height={100} alt="logo" />
+      {/* Logo replaced with text and icon */}
+      <div className="flex items-center gap-2">
+        <Bot className="text-indigo-600" size={32} />
+        <span className="text-2xl font-bold text-indigo-600">MockMate AI</span>
+      </div>
 
-      {/* Desktop Navbar */}
+      {/* Rest of the previous code remains the same */}
       <ul className="hidden md:flex gap-6">
         <NavItem path={path} href="/" label="Home" />
         <NavItem path={path} href="/dashboard" label="Dashboard" />
@@ -67,7 +70,7 @@ function Header() {
   );
 }
 
-// NavItem Component
+// NavItem Component remains the same as in the previous code
 function NavItem({ path, href, label, mobile }) {
   return (
     <Link href={href} passHref>
