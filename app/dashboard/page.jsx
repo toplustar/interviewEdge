@@ -17,6 +17,7 @@ import InterviewList from './_components/InterviewList'
 function Dashboard() {
   const { user } = useUser();
   const [interviewData, setInterviewData] = useState([]);
+  const [isNewInterviewModalOpen, setIsNewInterviewModalOpen] = useState(false);
   const [statsCards, setStatsCards] = useState([
     {
       icon: <ListChecks size={32} className="text-indigo-600" />,
@@ -36,6 +37,8 @@ function Dashboard() {
   ]);
 
   const fetchInterviews = async () => {
+    if (!user?.primaryEmailAddress?.emailAddress) return;
+
     try {
       const response = await fetch('/api/fetchUserData', {
         method: 'POST',
@@ -53,14 +56,14 @@ function Dashboard() {
       }
   
       const data = await response.json();
-      setInterviewData(data.userAnswers);
+      setInterviewData(data.userAnswers || []);
 
       // Calculate and update stats
-      const totalInterviews = data.userAnswers.length;
-      const bestScore = data.userAnswers.length > 0 
+      const totalInterviews = data.userAnswers?.length || 0;
+      const bestScore = totalInterviews > 0 
         ? Math.max(...data.userAnswers.map(item => parseInt(item.rating || '0')))
         : 0;
-      const improvementRate = calculateImprovementRate(data.userAnswers);
+      const improvementRate = calculateImprovementRate(data.userAnswers || []);
 
       setStatsCards([
         {
@@ -98,6 +101,7 @@ function Dashboard() {
       fetchInterviews();
     }
   }, [user]);
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* User Greeting */}
@@ -113,7 +117,7 @@ function Dashboard() {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-gray-500">
-            {user?.primaryEmailAddress?.emailAddress}
+            {user?.primaryEmailAddress?.emailAddress || 'Not logged in'}
           </span>
         </div>
       </div>
@@ -141,7 +145,10 @@ function Dashboard() {
             <Zap size={32} className="text-yellow-500" />
             Create AI Mock Interview
           </h2>
-          <button className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-700 transition-colors">
+          <button 
+            onClick={() => setIsNewInterviewModalOpen(true)}
+            className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-full hover:bg-indigo-700 transition-colors"
+          >
             <Plus size={20} className="mr-2" />
             New Interview
           </button>
@@ -149,7 +156,10 @@ function Dashboard() {
 
         {/* Add New Interview Component */}
         <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-          <AddNewInterview />
+          <AddNewInterview 
+            isOpen={isNewInterviewModalOpen} 
+            onClose={() => setIsNewInterviewModalOpen(false)} 
+          />
         </div>
       </div>
 

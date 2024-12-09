@@ -5,6 +5,7 @@ import { db } from "@/utils/db";
 import { eq } from "drizzle-orm";
 import { MockInterview } from "@/utils/schema";
 import { Trash } from "lucide-react";
+import { toast } from "sonner";
 
 const InterviewItemCard = ({ interview }) => {
   const router = useRouter();
@@ -20,15 +21,17 @@ const InterviewItemCard = ({ interview }) => {
 
   const onDelete = async () => {
     try {
-      console.log("Delete interview with ID:", interview?.mockId);
-
       await db.delete(MockInterview).where(eq(MockInterview.mockId, interview?.mockId));
-
-      console.log("Interview deleted successfully");
+      
+      // Close dialog and show success toast
       setIsDialogOpen(false);
-      window.location.reload();
+      toast.success("Interview deleted successfully");
+      
+      // Use router to refresh instead of full page reload
+      router.refresh();
     } catch (error) {
       console.error("Error deleting interview:", error);
+      toast.error("Failed to delete interview");
     }
   };
 
@@ -62,16 +65,19 @@ const InterviewItemCard = ({ interview }) => {
 
       {/* Confirmation Dialog */}
       {isDialogOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
             <h3 className="text-lg font-bold mb-4">Confirm Deletion</h3>
-            <p>Are you sure you want to delete this interview?</p>
-            <div className="flex justify-end gap-3 mt-4">
+            <p className="mb-4">Are you sure you want to delete this interview?</p>
+            <div className="flex justify-end gap-3">
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button className="bg-red-600 text-white" onClick={onDelete}>
-                Confirm
+              <Button 
+                variant="destructive" 
+                onClick={onDelete}
+              >
+                Confirm Delete
               </Button>
             </div>
           </div>

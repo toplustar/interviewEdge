@@ -1,14 +1,16 @@
 import localFont from "next/font/local";
 import "./globals.css";
-import {
-  ClerkProvider
-} from '@clerk/nextjs';
+import { ClerkProvider } from '@clerk/nextjs';
 import { Toaster } from "@/components/ui/sonner";
+import Footer from "./dashboard/_components/Footer";
+import Header from "./dashboard/_components/Header";
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
   weight: "100 900",
 });
+
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
@@ -23,14 +25,18 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <ClerkProvider>
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-         <Toaster />
-        {children}
-      </body>
-    </html>
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
+        >
+          <Header />
+          <Toaster />
+          <main className="flex-grow pt-16 sm:pt-20">
+            {children}
+          </main>
+          <Footer />
+        </body>
+      </html>
     </ClerkProvider>
   );
 }
