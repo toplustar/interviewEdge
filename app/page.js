@@ -8,18 +8,19 @@ import {
   FileText, 
   Globe, 
   Award, 
-  Brain 
+  Brain,
+  ArrowRight
 } from 'lucide-react'
 import Link from 'next/link'
 import HeroSection from './dashboard/_components/HeroSection'
 
 const ResourceCard = ({ icon, title, description, links }) => (
-  <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 p-6">
+  <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 p-6 flex flex-col h-full">
     <div className="flex items-center mb-4">
       {icon}
       <h3 className="ml-4 text-xl font-semibold text-gray-900">{title}</h3>
     </div>
-    <p className="text-gray-600 mb-4">{description}</p>
+    <p className="text-gray-600 mb-4 flex-grow">{description}</p>
     <div className="space-y-2">
       {links.map((link, index) => (
         <a
@@ -27,9 +28,12 @@ const ResourceCard = ({ icon, title, description, links }) => (
           href={link.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="block text-indigo-600 hover:text-indigo-800 hover:underline transition-colors"
+          className="group flex items-center text-indigo-600 hover:text-indigo-800 transition-colors"
         >
           {link.name}
+          <ArrowRight 
+            className="ml-2 w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" 
+          />
         </a>
       ))}
     </div>
@@ -121,85 +125,96 @@ export default function ResourcesPage() {
   return (
     <>
     <HeroSection />
-    <div className="bg-gray-50 min-h-screen py-16">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="text-center mb-16">
-        <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl mb-6">
-          B.Tech Interview & Preparation Resources
-        </h1>
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-          Comprehensive collection of resources to support your professional growth and interview preparation
-        </p>
-      </div>
+    <div className="bg-gradient-to-br from-gray-50 to-white min-h-screen py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header Section */}
+        <div className="text-center mb-16 space-y-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
+            B.Tech Interview & Preparation Resources
+          </h1>
+          <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+            Comprehensive collection of resources to support your professional growth and interview preparation
+          </p>
+        </div>
 
-      {/* Category Tabs */}
-      <div className="flex justify-center mb-12">
-        {Object.keys(resourceCategories).map((category) => (
-          <button
-            key={category}
-            onClick={() => setActiveCategory(category)}
-            className={`px-6 py-3 mx-2 rounded-full text-sm font-medium transition-all 
-            ${activeCategory === category 
-              ? 'bg-indigo-600 text-white' 
-              : 'bg-gray-100 text-gray-900 hover:bg-gray-200'}`}
-          >
-            {category.charAt(0).toUpperCase() + category.slice(1)} Resources
-          </button>
-        ))}
-      </div>
-
-      {/* Resources Grid */}
-      <div className="grid md:grid-cols-2 gap-8">
-        {resourceCategories[activeCategory].resources.map((resource, index) => (
-          <ResourceCard key={index} {...resource} />
-        ))}
-      </div>
-
-      {/* Additional Resources Section */}
-      <div className="mt-16 bg-white rounded-xl shadow-md p-12">
-        <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">
-          Additional Preparation Tips
-        </h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            {
-              title: "Resume Building",
-              description: "Create a standout professional resume",
-              url: "https://www.canva.com/resumes/templates/"
-            },
-            {
-              title: "Mock Interviews",
-              description: "Practice with AI-powered interview simulations",
-              url: "/dashboard"
-            },
-            {
-              title: "Skill Assessment",
-              description: "Identify and improve your key skills",
-              url: "https://www.skillvalue.com/"
-            }
-          ].map((tip, index) => (
-            <div 
-              key={index} 
-              className="bg-gray-50 p-6 rounded-lg text-center hover:shadow-md transition-all"
+        {/* Category Tabs */}
+        <div className="flex flex-wrap justify-center mb-12 gap-4">
+          {Object.keys(resourceCategories).map((category) => (
+            <button
+              key={category}
+              onClick={() => setActiveCategory(category)}
+              className={`px-6 py-2 rounded-full text-sm font-medium transition-all 
+              ${activeCategory === category 
+                ? 'bg-indigo-600 text-white shadow-md' 
+                : 'bg-gray-100 text-gray-900 hover:bg-gray-200 hover:shadow-sm'}`}
             >
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                {tip.title}
-              </h3>
-              <p className="text-gray-600 mb-4">{tip.description}</p>
-              <a
-                href={tip.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-indigo-600 hover:text-indigo-800 hover:underline"
-              >
-                Explore
-              </a>
-            </div>
+              {category.charAt(0).toUpperCase() + category.slice(1)} Resources
+            </button>
           ))}
+        </div>
+
+        {/* Resources Grid */}
+        <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-8">
+          {resourceCategories[activeCategory].resources.map((resource, index) => (
+            <ResourceCard key={index} {...resource} />
+          ))}
+        </div>
+
+        {/* Additional Resources Section */}
+        <div className="mt-16 bg-white rounded-xl shadow-lg overflow-hidden">
+          <div className="p-8 md:p-12 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+              Additional Preparation Tips
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto mb-8">
+              Explore supplementary resources to enhance your interview and career preparation journey
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-1 md:grid-cols-3 gap-6 p-8 pt-0">
+            {[
+              {
+                title: "Resume Building",
+                description: "Create a standout professional resume",
+                icon: <Book className="w-12 h-12 text-indigo-600 mx-auto mb-4" />,
+                url: "https://www.canva.com/resumes/templates/"
+              },
+              {
+                title: "Mock Interviews",
+                description: "Practice with AI-powered interview simulations",
+                icon: <Target className="w-12 h-12 text-green-600 mx-auto mb-4" />,
+                url: "/dashboard"
+              },
+              {
+                title: "Skill Assessment",
+                description: "Identify and improve your key skills",
+                icon: <Brain className="w-12 h-12 text-purple-600 mx-auto mb-4" />,
+                url: "https://www.skillvalue.com/"
+              }
+            ].map((tip, index) => (
+              <div 
+                key={index} 
+                className="bg-gray-50 p-6 rounded-lg text-center hover:shadow-md transition-all group"
+              >
+                {tip.icon}
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                  {tip.title}
+                </h3>
+                <p className="text-gray-600 mb-4">{tip.description}</p>
+                <a
+                  href={tip.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group-hover:text-indigo-800 text-indigo-600 flex items-center justify-center"
+                >
+                  Explore
+                  <ArrowRight className="ml-2 w-5 h-5" />
+                </a>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
-  </div></>
-    
+    </>
   )
 }

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { useUser } from "@clerk/nextjs";
+import { toast } from "sonner";
 import {
   Bot,
   Plus,
@@ -37,7 +38,10 @@ function Dashboard() {
   ]);
 
   const fetchInterviews = async () => {
-    if (!user?.primaryEmailAddress?.emailAddress) return;
+    if (!user?.primaryEmailAddress?.emailAddress) {
+      toast.error("User email not found");
+      return;
+    }
 
     try {
       const response = await fetch('/api/fetchUserData', {
@@ -56,14 +60,20 @@ function Dashboard() {
       }
   
       const data = await response.json();
-      setInterviewData(data.userAnswers || []);
+      
+      // Filter interviews specific to the current user's email
+      const userSpecificInterviews = data.userAnswers.filter(
+        interview => interview.userEmail === user.primaryEmailAddress.emailAddress
+      );
+
+      setInterviewData(userSpecificInterviews);
 
       // Calculate and update stats
-      const totalInterviews = data.userAnswers?.length || 0;
+      const totalInterviews = userSpecificInterviews.length;
       const bestScore = totalInterviews > 0 
-        ? Math.max(...data.userAnswers.map(item => parseInt(item.rating || '0')))
+        ? Math.max(...userSpecificInterviews.map(item => parseInt(item.rating || '0')))
         : 0;
-      const improvementRate = calculateImprovementRate(data.userAnswers || []);
+      const improvementRate = calculateImprovementRate(userSpecificInterviews);
 
       setStatsCards([
         {
@@ -80,8 +90,13 @@ function Dashboard() {
         }
       ]);
 
+      if (totalInterviews > 0) {
+        toast.success(`Loaded ${totalInterviews} interview(s)`);
+      }
+
     } catch (error) {
       console.error('Error fetching interviews:', error);
+      toast.error(error.message || 'Failed to fetch interviews');
     }
   };
 
@@ -103,46 +118,46 @@ function Dashboard() {
   }, [user]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* User Greeting */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 space-y-4 sm:space-y-0">
         <div>
-          <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-            <Bot className="text-indigo-600" size={40} />
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 flex items-center gap-3">
+            <Bot className="text-indigo-600" size={32} />
             Dashboard
           </h2>
-          <h3 className="text-xl text-gray-600 mt-2">
+          <h3 className="text-lg sm:text-xl text-gray-600 mt-2">
             Welcome, {user?.firstName || 'Interviewer'}
           </h3>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-gray-500">
+          <span className="text-gray-500 text-sm sm:text-base">
             {user?.primaryEmailAddress?.emailAddress || 'Not logged in'}
           </span>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
         {statsCards.map((card) => (
           <div 
             key={card.title}
-            className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center"
+            className="bg-white p-4 sm:p-6 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center"
           >
             {card.icon}
             <div className="ml-4">
-              <p className="text-gray-500 text-sm">{card.title}</p>
-              <p className="text-2xl font-bold text-gray-800">{card.value}</p>
+              <p className="text-xs sm:text-sm text-gray-500">{card.title}</p>
+              <p className="text-xl sm:text-2xl font-bold text-gray-800">{card.value}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Interview Section */}
-      <div className="bg-gray-50 p-6 rounded-lg">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-3">
-            <Zap size={32} className="text-yellow-500" />
+      <div className="bg-gray-50 p-4 sm:p-6 rounded-lg">
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-6 space-y-4 sm:space-y-0">
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 flex items-center gap-3">
+            <Zap size={24} className="text-yellow-500" />
             Create AI Mock Interview
           </h2>
           <button 
@@ -155,7 +170,7 @@ function Dashboard() {
         </div>
 
         {/* Add New Interview Component */}
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+        <div className='grid grid-cols-1 sm:grid-cols-3 gap-6'>
           <AddNewInterview 
             isOpen={isNewInterviewModalOpen} 
             onClose={() => setIsNewInterviewModalOpen(false)} 
@@ -165,7 +180,7 @@ function Dashboard() {
 
      {/* Interview History */}
      <div className="mt-8">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+        <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-6">
           Interview History
         </h2>
         <InterviewList interviews={interviewData} />
