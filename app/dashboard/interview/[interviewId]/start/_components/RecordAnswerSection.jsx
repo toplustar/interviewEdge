@@ -20,56 +20,90 @@ const RecordAnswerSection = ({
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [webcamEnabled, setWebcamEnabled] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
   const recognitionRef = useRef(null);
   const webcamRef = useRef(null);
 
   useEffect(() => {
-    // Speech recognition setup (previous code remains the same)
-    if (typeof window !== "undefined" && 'webkitSpeechRecognition' in window) {
-      recognitionRef.current = new window.webkitSpeechRecognition();
-      const recognition = recognitionRef.current;
+    // Speech recognition setup with better browser compatibility
+    if (typeof window !== "undefined") {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        const recognition = recognitionRef.current;
+        setSpeechSupported(true);
 
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = 'en-US';
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+        recognition.maxAlternatives = 1;
 
-      recognition.onresult = (event) => {
-        let finalTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript + ' ';
+        recognition.onresult = (event) => {
+          let finalTranscript = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript + ' ';
+            }
           }
-        }
 
-        if (finalTranscript.trim()) {
-          setUserAnswer(prev => (prev + ' ' + finalTranscript).trim());
-        }
-      };
+          if (finalTranscript.trim()) {
+            setUserAnswer(prev => (prev + ' ' + finalTranscript).trim());
+          }
+        };
 
-      recognition.onerror = (event) => {
-        toast.error(`Speech recognition error: ${event.error}`);
-        setIsRecording(false);
-      };
+        recognition.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+          toast.error(`Speech recognition error: ${event.error}`);
+          setIsRecording(false);
+        };
 
-      recognition.onend = () => {
-        setIsRecording(false);
-      };
+        recognition.onend = () => {
+          setIsRecording(false);
+        };
+
+        recognition.onstart = () => {
+          console.log('Speech recognition started');
+        };
+      } else {
+        console.warn('Speech recognition not supported in this browser');
+        setSpeechSupported(false);
+        toast.warning('Speech recognition is not supported in your browser. Please use Chrome or Edge.');
+      }
     }
   }, []);
 
   const EnableWebcam = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      // Request both video and audio permissions for better recording experience
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: true, 
+        audio: true 
+      });
+      
       if (webcamRef.current) {
         webcamRef.current.srcObject = stream;
       }
       setWebcamEnabled(true);
-      toast.success("Webcam enabled successfully");
+      toast.success("Webcam and microphone enabled successfully");
     } catch (error) {
-      toast.error("Failed to enable webcam", {
-        description: "Please check your camera permissions"
-      });
       console.error("Webcam error:", error);
+      
+      let errorMessage = "Failed to enable webcam";
+      let description = "Please check your camera permissions";
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage = "Camera access denied";
+        description = "Please allow camera access in your browser settings";
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = "No camera found";
+        description = "Please connect a camera to your device";
+      } else if (error.name === 'NotReadableError') {
+        errorMessage = "Camera is being used by another application";
+        description = "Please close other applications using the camera";
+      }
+      
+      toast.error(errorMessage, { description });
     }
   };
 
@@ -80,19 +114,25 @@ const RecordAnswerSection = ({
   };
 
   const StartStopRecording = () => {
-    // (previous recording logic remains the same)
-    if (!recognitionRef.current) {
-      toast.error("Speech-to-text not supported");
+    if (!speechSupported || !recognitionRef.current) {
+      toast.error("Speech-to-text not supported in your browser. Please use Chrome or Edge for voice recording.");
       return;
     }
 
-    if (isRecording) {
-      recognitionRef.current.stop();
-      toast.info("Recording stopped");
-    } else {
-      recognitionRef.current.start();
-      setIsRecording(true);
-      toast.info("Recording started");
+    try {
+      if (isRecording) {
+        recognitionRef.current.stop();
+        setIsRecording(false);
+        toast.info("Recording stopped");
+      } else {
+        recognitionRef.current.start();
+        setIsRecording(true);
+        toast.info("Recording started - speak now!");
+      }
+    } catch (error) {
+      console.error('Recording error:', error);
+      toast.error(`Failed to ${isRecording ? 'stop' : 'start'} recording: ${error.message}`);
+      setIsRecording(false);
     }
   };
 
@@ -184,7 +224,7 @@ const RecordAnswerSection = ({
       </div>
 
       <Button
-        disabled={loading}
+        disabled={loading || !speechSupported}
         variant="outline"
         className="my-10"
         onClick={StartStopRecording}
@@ -194,11 +234,17 @@ const RecordAnswerSection = ({
             <StopCircle /> Stop Recording
           </h2>
         ) : (
-          <h2 className="text-primary flex gap-2 items-center">
-            <Mic /> Record Answer
+          <h2 className={`flex gap-2 items-center ${!speechSupported ? 'text-gray-400' : 'text-primary'}`}>
+            <Mic /> {!speechSupported ? 'Voice Recording Not Supported' : 'Record Answer'}
           </h2>
         )}
       </Button>
+      
+      {!speechSupported && (
+        <p className="text-sm text-gray-500 mb-4 text-center">
+          Voice recording is not supported in your browser. Please use Chrome or Edge for voice recording, or type your answer manually below.
+        </p>
+      )}
 
       <textarea
         className="w-full h-32 p-4 mt-4 border rounded-md text-gray-800"
