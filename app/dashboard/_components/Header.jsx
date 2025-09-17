@@ -52,7 +52,7 @@ function Header() {
     { href: "/", label: "Home" },
     { href: "/dashboard", label: "Dashboard" },
     { href: "/how-it-works", label: "How it works" },
-    { href: "/about-us", label: "About us" },
+    // { href: "/about-us", label: "About us" },
   ];
 
   return (
@@ -72,11 +72,11 @@ function Header() {
         <Link 
           href="/" 
           className="flex items-center gap-2"
-          aria-label="MockMate AI Home"
+          aria-label="InterviewEdge Home"
           onClick={closeMobileMenu}
         >
           <Bot className="text-indigo-600" size={28} />
-          <span className="text-xl sm:text-2xl font-bold text-indigo-600">MockMate AI</span>
+          <span className="text-xl sm:text-2xl font-bold text-indigo-600">InterviewEdge</span>
         </Link>
 
         {/* Desktop Navigation */}

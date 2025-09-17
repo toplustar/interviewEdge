@@ -8,13 +8,13 @@ const Footer = () => {
         {/* Copyright Section */}
         <div className="flex items-center text-sm">
           <CopyrightIcon className="mr-2 h-5 w-5 text-gray-400" />
-          <span>{new Date().getFullYear()} MockMate AI. All Rights Reserved.</span>
+          <span>{new Date().getFullYear()} InterviewEdge. All Rights Reserved.</span>
         </div>
 
        
 
         {/* Social Media Links */}
-        <div className="flex space-x-4">
+        {/* <div className="flex space-x-4">
           <a
             href="https://github.com/mockmate"
             target="_blank"
@@ -42,7 +42,7 @@ const Footer = () => {
           >
             <Twitter className="h-6 w-6" />
           </a>
-        </div>
+        </div> */}
       </div>
     </footer>
   );
